@@ -32,7 +32,6 @@ const dbClient = mysql.createPool({
 
 console.log("process.env.USER", process.env.USER);
 console.log("process.env.USER", process.env);
-
 async function fetchAndStoreNFTData(tokenId) {
   try {
     console.log("dbClient", dbClient);
@@ -43,10 +42,16 @@ async function fetchAndStoreNFTData(tokenId) {
     const response = sync_request("GET", req_url, {});
     console.log("response", response);
 
+    // Buffer를 문자열로 변환하여 JSON 파싱
     const result = JSON.parse(response.getBody().toString());
     console.log("result", result);
 
-    const nftData = result.data.nfts;
+    const nftData = result.nfts;
+
+    if (nftData.length === 0) {
+      console.log("No NFTs found for the given token ID.");
+      return;
+    }
 
     console.log("nftData", nftData);
 
@@ -209,7 +214,7 @@ async function registerToiletService(req) {
     console.log(`Token created with ID: ${tokenId} \n`);
     result = `Token created with ID: ${tokenId} \n`;
 
-    result2 = await fetchAndStoreNFTData(tokenId);
+    result2 = fetchAndStoreNFTData(tokenId);
     console.log("result2", result2);
 
     return result;

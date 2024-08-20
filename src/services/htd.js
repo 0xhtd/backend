@@ -221,8 +221,8 @@ async function registerToiletService(req) {
     result = `Token created with ID: ${tokenId} \n`;
 
     const query = `
-          INSERT INTO nfts2 (name, symbol, memo, deleted, maxSupply, metadata, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO nfts2 (name, symbol, memo, maxSupply, metadata, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
         `;
     const currentTime = new Date();
 

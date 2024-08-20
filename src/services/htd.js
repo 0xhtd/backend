@@ -214,8 +214,57 @@ async function registerToiletService(req) {
     console.log(`Token created with ID: ${tokenId} \n`);
     result = `Token created with ID: ${tokenId} \n`;
 
-    result2 = fetchAndStoreNFTData(tokenId);
-    console.log("result2", result2);
+    //result2 = fetchAndStoreNFTData(tokenId);
+    try {
+      // console.log("dbClient", dbClient);
+
+      // Hedera Mirror Node API에서 NFT 데이터 가져오기
+      const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
+
+      const response = sync_request("GET", req_url, {});
+      console.log("response", response);
+
+      // Buffer를 문자열로 변환하여 JSON 파싱
+      const resultStr = JSON.parse(response.body.getBody().toString());
+      console.log("resultStr", resultStr);
+
+      const nftData = resultStr.nfts;
+
+      if (nftData.length === 0) {
+        console.log("No NFTs found for the given token ID.");
+        return;
+      }
+
+      console.log("nftData", nftData);
+
+      for (let nft of nftData) {
+        const query = `
+          INSERT INTO nfts (account_id, created_timestamp, delegating_spender, deleted, metadata, modified_timestamp, serial_number, spender, token_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const values = [
+          nft.account_id,
+          new Date(Number(nft.created_timestamp) * 1000),
+          nft.delegating_spender,
+          nft.deleted,
+          nft.metadata,
+          new Date(Number(nft.modified_timestamp) * 1000),
+          nft.serial_number,
+          nft.spender,
+          nft.token_id,
+        ];
+
+        await dbClient.execute(query, values);
+        console.log(
+          `NFT with Serial Number ${nft.serial_number} inserted into database.`
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching or storing NFT data", error);
+    }
+
+    //console.log("result2", result2);
 
     return result;
   } catch (e) {

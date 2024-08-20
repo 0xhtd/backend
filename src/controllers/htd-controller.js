@@ -45,6 +45,20 @@ const registerToiletCtl = async (req, res, next) => {
   }
 };
 
+const registerToiletOwnCtl = async (req, res, next) => {
+  try {
+    let result = await htdService.registerToiletServiceOwn(req);
+    console.log("result", result);
+    return res
+      .status(StatusCodes.OK)
+      .json(response.Success("page_info", result));
+  } catch (e) {
+    console.error(e);
+    logger.error("testApi error");
+    return res.status(StatusCodes.BAD_REQUEST).json(response.CustomError(e));
+  }
+};
+
 const associateCtl = async (req, res, next) => {
   try {
     let result = await htdService.associateService(req);
@@ -123,4 +137,5 @@ module.exports = {
   ftTransferCtl,
   toiletMasterInitCtl,
   nftTransferCtl,
+  registerToiletOwnCtl,
 };

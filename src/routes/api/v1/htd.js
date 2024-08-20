@@ -25,6 +25,13 @@ router.post(
   htdController.registerToiletCtl
 );
 
+//registerToiletOwnCtl
+router.post(
+  "/register-toilet-own",
+  validatorErrorChecker,
+  htdController.registerToiletOwnCtl
+);
+
 //associate,
 router.post(
   "/post-associate",

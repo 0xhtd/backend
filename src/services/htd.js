@@ -20,7 +20,7 @@ const mysql = require("mysql2/promise"); // mysql2의 promise 기반 API 사용
 // MySQL 데이터베이스 연결 설정
 const dbClient = mysql.createPool({
   host: process.env.HOST || "localhost",
-  user: "root",
+  user: process.env.USER,
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   waitForConnections: true,
@@ -39,7 +39,11 @@ async function fetchAndStoreNFTData(tokenId) {
     const response = await axios.get(
       `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`
     );
+    console.log("response", response);
+
     const nftData = response.data.nfts;
+
+    console.log("nftData", nftData);
 
     for (let nft of nftData) {
       const query = `
@@ -200,7 +204,8 @@ async function registerToiletService(req) {
     console.log(`Token created with ID: ${tokenId} \n`);
     result = `Token created with ID: ${tokenId} \n`;
 
-    fetchAndStoreNFTData(tokenId);
+    result2 = await fetchAndStoreNFTData(tokenId);
+    console.log("result2", result2);
 
     return result;
   } catch (e) {

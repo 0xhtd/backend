@@ -3,6 +3,8 @@ const path = require("path");
 const axios = require("axios");
 const { logger } = require(`../middlewares/winston`);
 require("dotenv").config();
+const sync_request = require("sync-request");
+
 const fs = require("fs");
 let {
   AccountId,
@@ -36,12 +38,15 @@ async function fetchAndStoreNFTData(tokenId) {
     console.log("dbClient", dbClient);
 
     // Hedera Mirror Node API에서 NFT 데이터 가져오기
-    const response = await axios.get(
-      `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`
-    );
+    const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
+
+    const response = sync_request("GET", req_url, {});
     console.log("response", response);
 
-    const nftData = response.data.nfts;
+    const result = JSON.parse(response.getBody().toString());
+    console.log("result", result);
+
+    const nftData = result.data.nfts;
 
     console.log("nftData", nftData);
 

@@ -83,7 +83,7 @@ async function getContractService(req) {
   }
 }
 
-async function registerToiletService() {
+async function registerToiletService(req) {
   try {
     const operatorKey = PrivateKey.fromString(process.env.MY_PRIVATE_KEY);
     const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
@@ -100,6 +100,12 @@ async function registerToiletService() {
     }
 
     const contractId = fs.readFileSync(filePath, "utf8").trim();
+    console.log("req.body", req.body);
+
+    let name = req.body.name;
+    let symbol = req.body.symbol;
+    let memo = req.body.memo;
+    let maxSupply = req.body.maxSupply;
 
     const createToken = new ContractExecuteTransaction()
       .setContractId(contractId)
@@ -108,10 +114,10 @@ async function registerToiletService() {
       .setFunction(
         "registerToilet",
         new ContractFunctionParameters()
-          .addString("ToiletGrandMaster") // NFT name
-          .addString("TGM") // NFT symbol
-          .addString("Just a Toilet") // NFT memo
-          .addInt64(10) // NFT max supply
+          .addString(name) // NFT name
+          .addString(symbol) // NFT symbol
+          .addString(memo) // NFT memo
+          .addInt64(maxSupply) // NFT max supply
           .addString(
             "ipfs://bafyreie3ichmqul4xa7e6xcy34tylbuq2vf3gnjf7c55trg3b6xyjr4bku/metadata.json"
           )
@@ -192,7 +198,42 @@ async function approveAllService(req) {
   }
 }
 
-async function transferService(req) {
+async function ftTransferService(req) {
+  try {
+    const operatorKey = PrivateKey.fromString(process.env.MY_PRIVATE_KEY);
+    const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
+    const client = Client.forTestnet().setOperator(operatorId, operatorKey);
+
+    const filePath = path.join(
+      __dirname,
+      "..",
+      "contractInfo",
+      "contractId.txt"
+    );
+
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+
+    const tokenId = AccountId.fromString(req.body.tokenId);
+    const senderId = AccountId.fromString(req.body.senderId);
+    const receiverId = AccountId.fromString(req.body.receiverId);
+    const amount = req.body.amount;
+
+    const transaction = await new TransferTransaction()
+      .addTokenTransfer(tokenId, senderId, amount)
+      .addTokenTransfer(tokenId, receiverId, amount)
+      .freezeWith(client);
+
+    result = toHexString(transaction.toBytes());
+    return result;
+  } catch (e) {
+    logger.error("approveAllService error");
+    throw e;
+  }
+}
+
+async function nftTransferService(req) {
   try {
     const operatorKey = PrivateKey.fromString(process.env.MY_PRIVATE_KEY);
     const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
@@ -252,10 +293,18 @@ async function toiletMasterInitService(req) {
     const receiverId = AccountId.fromString(req.body.receiverId);
     const amount = req.body.amount;
 
-    const transaction = await new TransferTransaction()
-      .addTokenTransfer(tokenId, senderId, amount)
-      .addTokenTransfer(tokenId, receiverId, amount)
-      .freezeWith(client);
+    //associate
+    //private key를 어소시에이트하려는 계정이 해야해서 서버의 마스터가 할 수 없음
+
+    //approveall
+    //private key를 어소시에이트하려는 계정이 해야해서 서버의 마스터가 할 수 없음
+
+    //nft transfer
+    // const transaction = await new TransferTransaction()
+    // .addTokenTransfer(tokenId, senderId, amount)
+    // .addTokenTransfer(tokenId, receiverId, amount)
+    // .freezeWith(client);
+    //private key를 어소시에이트하려는 계정이 해야해서 서버의 마스터가 할 수 없음
 
     result = toHexString(transaction.toBytes());
     return result;
@@ -271,6 +320,7 @@ module.exports = {
   registerToiletService,
   associateService,
   approveAllService,
-  transferService,
+  ftTransferService,
   toiletMasterInitService,
+  nftTransferService,
 };

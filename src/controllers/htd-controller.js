@@ -73,9 +73,22 @@ const approveallCtl = async (req, res, next) => {
   }
 };
 
-const transferCtl = async (req, res, next) => {
+const ftTransferCtl = async (req, res, next) => {
   try {
-    let result = await htdService.transferService(req);
+    let result = await htdService.ftTransferService(req);
+    console.log("result", result);
+    return res
+      .status(StatusCodes.OK)
+      .json(response.Success("page_info", result));
+  } catch (e) {
+    console.error(e);
+    logger.error("testApi error");
+    return res.status(StatusCodes.BAD_REQUEST).json(response.CustomError(e));
+  }
+};
+const nftTransferCtl = async (req, res, next) => {
+  try {
+    let result = await htdService.nftTransferService(req);
     console.log("result", result);
     return res
       .status(StatusCodes.OK)
@@ -107,6 +120,7 @@ module.exports = {
   registerToiletCtl,
   associateCtl,
   approveallCtl,
-  transferCtl,
+  ftTransferCtl,
   toiletMasterInitCtl,
+  nftTransferCtl,
 };

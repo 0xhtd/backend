@@ -20,7 +20,7 @@ const mysql = require("mysql2/promise"); // mysql2의 promise 기반 API 사용
 // MySQL 데이터베이스 연결 설정
 const dbClient = mysql.createPool({
   host: process.env.HOST || "localhost",
-  user: process.env.USER,
+  user: "newuser",
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
   waitForConnections: true,

@@ -95,6 +95,7 @@ async function registerToiletService(req) {
   try {
     const operatorKey = PrivateKey.fromString(process.env.MY_PRIVATE_KEY);
     const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
+    const client = Client.forTestnet().setOperator(operatorId, operatorKey);
 
     const filePath = path.join(
       __dirname,

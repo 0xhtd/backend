@@ -224,15 +224,9 @@ async function registerToiletService(req) {
           INSERT INTO nfts2 (name, symbol, memo, deleted, maxSupply, metadata, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
+    const currentTime = new Date();
 
-    const values = [
-      name,
-      symbol,
-      memo,
-      maxSupply,
-      metadata,
-      new Date(Number(nft.created_timestamp) * 1000),
-    ];
+    const values = [name, symbol, memo, maxSupply, metadata, currentTime];
 
     await dbClient.execute(query, values);
     console.log(

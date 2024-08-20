@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+const Path = require('path');
+const { exit } = require('process');
+
+// Setup environment variables
+const env = process.env.NODE_ENV;
+if (env === undefined || env === null) {
+  console.error(`Invalid NODE_ENV: ${env}`);
+  exit();
+}
+require('dotenv').config({
+  path: Path.join(__dirname, '../.env')
+});
+
+if (env === 'dev' || env === 'local') {
+  const app = require('../server');
+}

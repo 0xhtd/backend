@@ -220,29 +220,6 @@ async function registerToiletService(req) {
     console.log(`Token created with ID: ${tokenId} \n`);
     result = `Token created with ID: ${tokenId} \n`;
 
-    // console.log("dbClient", dbClient);
-
-    // Hedera Mirror Node API에서 NFT 데이터 가져오기
-    const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
-
-    const response = sync_request("GET", req_url, {});
-    console.log("response", response);
-
-    // Buffer를 문자열로 변환하여 JSON 파싱
-    const resultStr = JSON.parse(response.getBody().toString());
-    console.log("resultStr", resultStr);
-
-    const nftData = resultStr.nfts;
-
-    if (nftData.length === 0) {
-      console.log("No NFTs found for the given token ID.");
-      return;
-    }
-
-    console.log("nftData", nftData);
-
-    //metadata ="https://90435dc40a621a9fa78ca7622125cd00.ipfscdn.io/ipfs/bafybeibcuj2ibcbbzbrjxsodgb2245qsomedigpu647zjrgilojhkifqhy/0/";
-
     const query = `
           INSERT INTO nfts2 (name, symbol, memo, deleted, maxSupply, metadata, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -261,8 +238,6 @@ async function registerToiletService(req) {
     console.log(
       `NFT with Serial Number ${nft.serial_number} inserted into database.`
     );
-
-    //console.log("result2", result2);
 
     return result;
   } catch (e) {

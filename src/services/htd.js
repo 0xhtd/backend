@@ -181,6 +181,12 @@ async function registerToiletService(req) {
     const operatorId = AccountId.fromString(process.env.MY_ACCOUNT_ID);
     const client = Client.forTestnet().setOperator(operatorId, operatorKey);
 
+    name = req.body.name;
+    symbol = req.body.symbol;
+    memo = req.body.memo;
+    maxSupply = req.body.maxSupply;
+    metadata = req.body.metadata;
+
     const filePath = path.join(
       __dirname,
       "..",
@@ -214,93 +220,49 @@ async function registerToiletService(req) {
     console.log(`Token created with ID: ${tokenId} \n`);
     result = `Token created with ID: ${tokenId} \n`;
 
-    //result2 = fetchAndStoreNFTData(tokenId);
-    // try {
-    //   // console.log("dbClient", dbClient);
+    // console.log("dbClient", dbClient);
 
-    //   // Hedera Mirror Node API에서 NFT 데이터 가져오기
-    //   const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
+    // Hedera Mirror Node API에서 NFT 데이터 가져오기
+    const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
 
-    //   const response = sync_request("GET", req_url, {});
-    //   console.log("response", response);
+    const response = sync_request("GET", req_url, {});
+    console.log("response", response);
 
-    //   // Buffer를 문자열로 변환하여 JSON 파싱
-    //   const resultStr = JSON.parse(response.getBody().toString());
-    //   console.log("resultStr", resultStr);
+    // Buffer를 문자열로 변환하여 JSON 파싱
+    const resultStr = JSON.parse(response.getBody().toString());
+    console.log("resultStr", resultStr);
 
-    //   const nftData = resultStr.nfts;
+    const nftData = resultStr.nfts;
 
-    //   if (nftData.length === 0) {
-    //     console.log("No NFTs found for the given token ID.");
-    //     return;
-    //   }
-
-    //   console.log("nftData", nftData);
-
-    //   for (let nft of nftData) {
-    //     const query = `
-    //       INSERT INTO nfts (account_id, created_timestamp, delegating_spender, deleted, metadata, modified_timestamp, serial_number, spender, token_id)
-    //       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    //     `;
-
-    //     const values = [
-    //       nft.account_id,
-    //       new Date(Number(nft.created_timestamp) * 1000),
-    //       nft.delegating_spender,
-    //       nft.deleted,
-    //       nft.metadata,
-    //       new Date(Number(nft.modified_timestamp) * 1000),
-    //       nft.serial_number,
-    //       nft.spender,
-    //       nft.token_id,
-    //     ];
-
-    //     await dbClient.execute(query, values);
-    //     console.log(
-    //       `NFT with Serial Number ${nft.serial_number} inserted into database.`
-    //     );
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching or storing NFT data", error);
-    // }
-
-    // //console.log("result2", result2);
-    try {
-      // Hedera Mirror Node API에서 NFT 데이터 가져오기
-      const req_url = `https://testnet.mirrornode.hedera.com/api/v1/tokens/${tokenId}/nfts`;
-
-      // 요청 보내기
-      const response = await axios.get(req_url);
-      console.log("response", response);
-
-      // 응답 데이터 파싱
-      const result = response.data;
-      console.log("result", result);
-
-      // NFT 데이터 추출
-      const nftData = result.nfts;
-
-      if (nftData.length === 0) {
-        console.log("No NFTs found for the given token ID.");
-        return;
-      }
-
-      console.log("nftData", nftData);
-
-      // 예시로, 각 NFT의 데이터를 콘솔에 출력
-      for (let nft of nftData) {
-        console.log(`NFT Serial Number: ${nft.serial_number}`);
-        console.log(`Account ID: ${nft.account_id}`);
-        console.log(`Metadata: ${nft.metadata}`);
-        console.log(`Created Timestamp: ${nft.created_timestamp}`);
-        console.log(`Modified Timestamp: ${nft.modified_timestamp}`);
-        console.log("-----------------------------------");
-
-        // 필요에 따라 데이터베이스에 저장하는 등의 작업을 수행
-      }
-    } catch (error) {
-      console.error("Error fetching or storing NFT data", error);
+    if (nftData.length === 0) {
+      console.log("No NFTs found for the given token ID.");
+      return;
     }
+
+    console.log("nftData", nftData);
+
+    //metadata ="https://90435dc40a621a9fa78ca7622125cd00.ipfscdn.io/ipfs/bafybeibcuj2ibcbbzbrjxsodgb2245qsomedigpu647zjrgilojhkifqhy/0/";
+
+    const query = `
+          INSERT INTO nfts2 (name, symbol, memo, deleted, maxSupply, metadata, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+    const values = [
+      name,
+      symbol,
+      memo,
+      maxSupply,
+      metadata,
+      new Date(Number(nft.created_timestamp) * 1000),
+    ];
+
+    await dbClient.execute(query, values);
+    console.log(
+      `NFT with Serial Number ${nft.serial_number} inserted into database.`
+    );
+
+    //console.log("result2", result2);
 
     return result;
   } catch (e) {

@@ -111,7 +111,8 @@ async function registerToiletService(req) {
     console.log("req.body", req.body);
 
     const tx = req.body.tx;
-    const decodeTx = fromHexString(tx);
+    const decodeTx = ContractExecuteTransaction.fromBytes(fromHexString(tx));
+    //fromHexString(tx);
 
     console.log("decodeTx", decodeTx);
     // let name = req.body.name;

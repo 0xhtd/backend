@@ -68,6 +68,8 @@ router.post(
 );
 
 // nft tokenlist
+//getNftAllCtl
+router.get("/get-nft-all", validatorErrorChecker, htdController.getNftAllCtl);
 
 // nft token detail
 

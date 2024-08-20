@@ -31,6 +31,20 @@ const getContractCtl = async (req, res, next) => {
   }
 };
 
+const getNftAllCtl = async (req, res, next) => {
+  try {
+    let result = await htdService.getNftAllService(req);
+    console.log("result", result);
+    return res
+      .status(StatusCodes.OK)
+      .json(response.Success("page_info", result));
+  } catch (e) {
+    console.error(e);
+    logger.error("testApi error");
+    return res.status(StatusCodes.BAD_REQUEST).json(response.CustomError(e));
+  }
+};
+
 const registerToiletCtl = async (req, res, next) => {
   try {
     let result = await htdService.registerToiletService(req);
@@ -138,4 +152,5 @@ module.exports = {
   toiletMasterInitCtl,
   nftTransferCtl,
   registerToiletOwnCtl,
+  getNftAllCtl,
 };

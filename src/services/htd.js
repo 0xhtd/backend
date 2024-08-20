@@ -271,6 +271,7 @@ async function registerToiletService(req) {
 
       // 요청 보내기
       const response = await axios.get(req_url);
+      console.log("response", response);
 
       // 응답 데이터 파싱
       const result = response.data;

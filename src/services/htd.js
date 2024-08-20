@@ -151,6 +151,7 @@ async function registerToiletService(req) {
 
     const tokenId = AccountId.fromSolidityAddress(tokenIdSolidityAddr);
     console.log(`Token created with ID: ${tokenId} \n`);
+    result = `Token created with ID: ${tokenId} \n`;
 
     return result;
   } catch (e) {

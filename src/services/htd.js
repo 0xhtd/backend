@@ -163,7 +163,7 @@ async function getNftAllService(req, res) {
     console.log("getNftAllService");
 
     // 데이터베이스에서 nfts 테이블의 모든 데이터 조회
-    const [rows] = await dbClient.execute("SELECT * FROM nfts");
+    const [rows] = await dbClient.execute("SELECT * FROM nfts2");
 
     console.log("result", rows);
 
@@ -229,9 +229,6 @@ async function registerToiletService(req) {
     const values = [name, symbol, memo, maxSupply, metadata, currentTime];
 
     await dbClient.execute(query, values);
-    console.log(
-      `NFT with Serial Number ${nft.serial_number} inserted into database.`
-    );
 
     return result;
   } catch (e) {

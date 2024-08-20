@@ -16,6 +16,13 @@ const {
   AccountBalanceQuery,
 } = require("@hashgraph/sdk");
 
+const fromHexString = (hexString) => {
+  const target = hexString.replace("0x", "");
+  return Uint8Array.from(
+    target.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+  );
+};
+
 const toHexString = (bytes) => {
   return (
     "0x" +
@@ -103,28 +110,46 @@ async function registerToiletService(req) {
     const contractId = fs.readFileSync(filePath, "utf8").trim();
     console.log("req.body", req.body);
 
-    let name = req.body.name;
-    let symbol = req.body.symbol;
-    let memo = req.body.memo;
-    let maxSupply = req.body.maxSupply;
+    const tx = req.body.tx;
+    const decodeTx = fromHexString(tx);
 
-    const createToken = new ContractExecuteTransaction()
-      .setContractId(contractId)
-      .setGas(4000000) // Increase if revert
-      .setPayableAmount(50) // Increase if revert
-      .setFunction(
-        "registerToilet",
-        new ContractFunctionParameters()
-          .addString(name) // NFT name
-          .addString(symbol) // NFT symbol
-          .addString(memo) // NFT memo
-          .addInt64(maxSupply) // NFT max supply
-          .addString(
-            "ipfs://bafyreie3ichmqul4xa7e6xcy34tylbuq2vf3gnjf7c55trg3b6xyjr4bku/metadata.json"
-          )
-      );
+    console.log("decodeTx", decodeTx);
+    // let name = req.body.name;
+    // let symbol = req.body.symbol;
+    // let memo = req.body.memo;
+    // let maxSupply = req.body.maxSupply;
 
-    result = toHexString(createToken.toBytes());
+    // const createToken = new ContractExecuteTransaction()
+    //   .setContractId(contractId)
+    //   .setGas(4000000) // Increase if revert
+    //   .setPayableAmount(50) // Increase if revert
+    //   .setFunction(
+    //     "registerToilet",
+    //     new ContractFunctionParameters()
+    //       .addString(name) // NFT name
+    //       .addString(symbol) // NFT symbol
+    //       .addString(memo) // NFT memo
+    //       .addInt64(maxSupply) // NFT max supply
+    //       .addString(
+    //         "ipfs://bafyreie3ichmqul4xa7e6xcy34tylbuq2vf3gnjf7c55trg3b6xyjr4bku/metadata.json"
+    //       )
+    //   );
+
+    // result = toHexString(createToken.toBytes());
+
+    const createTokenTx = await decodeTx.execute(client);
+    console.log(`createTokenTx: ${createTokenTx} \n`);
+
+    const createTokenRx = await createTokenTx.getRecord(client);
+    console.log(`createTokenRx: ${createTokenRx} \n`);
+
+    const tokenIdSolidityAddr =
+      createTokenRx.contractFunctionResult.getAddress(0);
+    console.log(`tokenIdSolidityAddr: ${tokenIdSolidityAddr} \n`);
+
+    const tokenId = AccountId.fromSolidityAddress(tokenIdSolidityAddr);
+    console.log(`Token created with ID: ${tokenId} \n`);
+
     return result;
   } catch (e) {
     logger.error("testApi error");
@@ -314,35 +339,36 @@ async function nftTransferService(req) {
       throw new Error(`File not found: ${filePath}`);
     }
 
+    const contractId = fs.readFileSync(filePath, "utf8").trim();
+    console.log(req.body);
+
     const tokenId = AccountId.fromString(req.body.tokenId);
-    //const senderId = AccountId.fromString(req.body.senderId);
     const receiverId = AccountId.fromString(req.body.receiverId);
-    const amount = req.body.amount;
 
     // Check the balance before the transfer for the treasury account
-    var balanceCheckTx = await new AccountBalanceQuery()
-      .setAccountId(operatorId)
-      .execute(client);
-    console.log(
-      `Treasury balance: ${balanceCheckTx.tokens._map.get(
-        tokenId.toString()
-      )} NFTs of ID ${tokenId}`
-    );
+    // let caBalanceCheckTx = await new AccountBalanceQuery()
+    //   .setAccountId(contractId)
+    //   .execute(client);
+    // console.log(
+    //   `contractId balance: ${caBalanceCheckTx.tokens._map.get(
+    //     tokenId.toString()
+    //   )} NFTs of ID ${tokenId}`
+    // );
 
-    // Check the balance before the transfer for Alice's account
-    var balanceCheckTx = await new AccountBalanceQuery()
-      .setAccountId(receiverId)
-      .execute(client);
-    console.log(
-      `Alice's balance: ${balanceCheckTx.tokens._map.get(
-        tokenId.toString()
-      )} NFTs of ID ${tokenId}`
-    );
+    // // Check the balance before the transfer for Alice's account
+    // let recBalanceCheckTx = await new AccountBalanceQuery()
+    //   .setAccountId(receiverId)
+    //   .execute(client);
+    // console.log(
+    //   `receiverId's balance: ${recBalanceCheckTx.tokens._map.get(
+    //     tokenId.toString()
+    //   )} NFTs of ID ${tokenId}`
+    // );
 
     // Transfer the NFT from treasury to Alice
     // Sign with the treasury key to authorize the transfer
     const tokenTransferTx = await new TransferTransaction()
-      .addNftTransfer(tokenId, 1, operatorId, receiverId)
+      .addNftTransfer(tokenId, 1, contractId, receiverId)
       .freezeWith(client)
       .sign(operatorKey);
 
@@ -353,30 +379,30 @@ async function nftTransferService(req) {
       `\nNFT transfer from Treasury to Alice: ${tokenTransferRx.status} \n`
     );
 
-    // Check the balance of the treasury account after the transfer
-    var balanceCheckTx = await new AccountBalanceQuery()
-      .setAccountId(treasuryId)
-      .execute(client);
-    console.log(
-      `Treasury balance: ${balanceCheckTx.tokens._map.get(
-        tokenId.toString()
-      )} NFTs of ID ${tokenId}`
-    );
+    // // Check the balance of the treasury account after the transfer
+    // var caBalanceCheckTxAfter = await new AccountBalanceQuery()
+    //   .setAccountId(contractId)
+    //   .execute(client);
+    // console.log(
+    //   `Treasury balance: ${caBalanceCheckTxAfter.tokens._map.get(
+    //     tokenId.toString()
+    //   )} NFTs of ID ${tokenId}`
+    // );
 
-    // Check the balance of Alice's account after the transfer
-    var balanceCheckTx = await new AccountBalanceQuery()
-      .setAccountId(aliceId)
-      .execute(client);
-    console.log(
-      `Alice's balance: ${balanceCheckTx.tokens._map.get(
-        tokenId.toString()
-      )} NFTs of ID ${tokenId}`
-    );
+    // // Check the balance of Alice's account after the transfer
+    // var recBalanceCheckTxAfter = await new AccountBalanceQuery()
+    //   .setAccountId(receiverId)
+    //   .execute(client);
+    // console.log(
+    //   `Alice's balance: ${recBalanceCheckTxAfter.tokens._map.get(
+    //     tokenId.toString()
+    //   )} NFTs of ID ${tokenId}`
+    // );
 
-    result = toHexString(transaction.toBytes());
-    return result;
+    // result = toHexString(transaction.toBytes());
+    // return result;
   } catch (e) {
-    logger.error("approveAllService error");
+    logger.error("nft transfer error");
     throw e;
   }
 }
